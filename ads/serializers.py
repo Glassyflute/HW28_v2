@@ -59,6 +59,8 @@ class AdUserCreateSerializer(serializers.ModelSerializer):
             loc_obj, _ = Location.objects.get_or_create(name=loc_item)
             new_user.location_names.add(loc_obj)
 
+        new_user.set_password(new_user.password)
+
         new_user.save()
         return new_user
 

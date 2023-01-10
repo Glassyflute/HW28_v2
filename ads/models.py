@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
@@ -14,7 +15,7 @@ class Category(models.Model):
 
 
 class Location(models.Model):
-    name = models.CharField(max_length=200, null=True)
+    name = models.CharField(max_length=200, null=True, blank=True, unique=True)
     lat = models.DecimalField(max_digits=10, decimal_places=7, null=True)
     lng = models.DecimalField(max_digits=10, decimal_places=7, null=True)
 
@@ -26,17 +27,19 @@ class Location(models.Model):
         return self.name
 
 
-class AdUser(models.Model):
+class AdUser(AbstractUser):
     ROLES = [
         ("member", "Участник"),
         ("moderator", "Модератор"),
         ("admin", "Админ")
     ]
 
-    first_name = models.CharField(max_length=20)
-    last_name = models.CharField(max_length=20, null=True)
+    # first_name, last_name, username, password есть в полях классов-родителей, но значения max_length по умолчанию
+    # вызывают ошибку при миграциях (по умолчанию больше знаков). Оставила изначальные значения этих полей с max_length.
+    first_name = models.CharField(max_length=20, null=True, blank=True)
+    last_name = models.CharField(max_length=20, null=True, blank=True)
     username = models.SlugField(max_length=30, unique=True)
-    password = models.SlugField(max_length=30)
+    password = models.SlugField(max_length=128)
     role = models.CharField(max_length=15, choices=ROLES, default="member")
     age = models.PositiveSmallIntegerField()
     location_names = models.ManyToManyField(Location)
@@ -47,6 +50,29 @@ class AdUser(models.Model):
 
     def __str__(self):
         return self.username
+
+
+# class AdUser(models.Model):
+#     ROLES = [
+#         ("member", "Участник"),
+#         ("moderator", "Модератор"),
+#         ("admin", "Админ")
+#     ]
+#
+#     first_name = models.CharField(max_length=20)
+#     last_name = models.CharField(max_length=20, null=True)
+#     username = models.SlugField(max_length=30, unique=True)
+#     password = models.SlugField(max_length=30)
+#     role = models.CharField(max_length=15, choices=ROLES, default="member")
+#     age = models.PositiveSmallIntegerField()
+#     location_names = models.ManyToManyField(Location)
+#
+#     class Meta:
+#         verbose_name = "Пользователь"
+#         verbose_name_plural = "Пользователи"
+#
+#     def __str__(self):
+#         return self.username
 
 
 class Ad(models.Model):
