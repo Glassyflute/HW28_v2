@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, UpdateView, ListView, CreateView, DeleteView
 from rest_framework.generics import RetrieveAPIView, ListAPIView, DestroyAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from ads.models import Category, Ad, AdUser, Location
@@ -148,7 +149,7 @@ class AdDetailView(RetrieveAPIView):
     """
     queryset = Ad.objects.all()
     serializer_class = AdDetailSerializer
-
+    permission_classes = [IsAuthenticated]
 
 class AdListView(ListView):
     """
