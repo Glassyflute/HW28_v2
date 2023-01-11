@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ads.models import AdUser, Location, Ad
+from ads.models import AdUser, Location, Ad, Selection, Category
 
 
 class LocationModelSerializer(serializers.ModelSerializer):
@@ -9,6 +9,7 @@ class LocationModelSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+#### AdUser
 class AdUserListSerializer(serializers.ModelSerializer):
     location_names = serializers.SlugRelatedField(
         many=True,
@@ -49,7 +50,7 @@ class AdUserCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def is_valid(self, raise_exception=False):
-        self._location_names = self.initial_data.pop("location_names")
+        self._location_names = self.initial_data.pop("location_names", [])
         return super().is_valid(raise_exception=raise_exception)
 
     def create(self, validated_data):
@@ -60,8 +61,8 @@ class AdUserCreateSerializer(serializers.ModelSerializer):
             new_user.location_names.add(loc_obj)
 
         new_user.set_password(new_user.password)
-
         new_user.save()
+
         return new_user
 
 
@@ -98,25 +99,25 @@ class AdUserDestroySerializer(serializers.ModelSerializer):
         fields = ["id"]
 
 
-# Ad
-# class AdListSerializer(serializers.ModelSerializer):
-#     author = serializers.SlugRelatedField(
-#         read_only=True,
-#         slug_field="username"
-#     )
-#     category = serializers.SlugRelatedField(
-#         read_only=True,
-#         slug_field="name"
-#     )
-#
-#     location_names = serializers.SerializerMethodField()
-#
-#     def get_location_names(self, ad):
-#         return [location_elem.name for location_elem in ad.author.location_names.all()]
-#
-#     class Meta:
-#         model = Ad
-#         fields = '__all__'
+######  Ad
+class AdListSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="username"
+    )
+    category = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="name"
+    )
+
+    location_names = serializers.SerializerMethodField()
+
+    def get_location_names(self, ad):
+        return [location_elem.name for location_elem in ad.author.location_names.all()]
+
+    class Meta:
+        model = Ad
+        fields = '__all__'
 
 
 class AdDetailSerializer(serializers.ModelSerializer):
@@ -138,4 +139,40 @@ class AdDetailSerializer(serializers.ModelSerializer):
         model = model = Ad
         fields = '__all__'
 
+
+# Selection serializers
+class SelectionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Selection
+        fields = ["id", "name"]
+
+
+class SelectionDetailSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="username"
+    )
+    items = AdListSerializer(many=True)
+
+    class Meta:
+        model = Selection
+        fields = '__all__'
+
+
+class SelectionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Selection
+        fields = '__all__'
+
+
+class SelectionUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Selection
+        fields = '__all__'
+
+
+class SelectionDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Selection
+        fields = ["id"]
 

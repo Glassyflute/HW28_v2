@@ -9,13 +9,17 @@ from django.utils.decorators import method_decorator
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, UpdateView, ListView, CreateView, DeleteView
-from rest_framework.generics import RetrieveAPIView, ListAPIView, DestroyAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView, DestroyAPIView, CreateAPIView, UpdateAPIView, \
+    GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from ads.models import Category, Ad, AdUser, Location
+from ads.models import Category, Ad, AdUser, Location, Selection
+from ads.permissions import IsSelectionOwner
 from ads.serializers import AdUserDetailSerializer, AdUserListSerializer, AdUserDestroySerializer, \
-    AdUserCreateSerializer, AdUserUpdateSerializer, AdDetailSerializer, LocationModelSerializer
+    AdUserCreateSerializer, AdUserUpdateSerializer, AdDetailSerializer, LocationModelSerializer, \
+    SelectionListSerializer, SelectionDetailSerializer, SelectionCreateSerializer, \
+    SelectionUpdateSerializer, SelectionDestroySerializer
 from avito import settings
 
 
@@ -145,11 +149,12 @@ class CategoryDeleteView(DeleteView):
 
 class AdDetailView(RetrieveAPIView):
     """
-    Детальная информация по выбранному объявлению
+    Детальная информация по выбранному объявлению, доступна при аутентификации пользователя по токену.
     """
     queryset = Ad.objects.all()
     serializer_class = AdDetailSerializer
     permission_classes = [IsAuthenticated]
+
 
 class AdListView(ListView):
     """
@@ -399,4 +404,47 @@ class AdUserDeleteView(DestroyAPIView):
     queryset = AdUser.objects.all()
     serializer_class = AdUserDestroySerializer
 
+
+#######################
+class SelectionListView(ListAPIView):
+    """
+    Класс для списка подборок
+    """
+    queryset = Selection.objects.all()
+    serializer_class = SelectionListSerializer
+
+
+class SelectionDetailView(RetrieveAPIView):
+    """
+    Детальная информация по подборкам выбранного пользователя
+    """
+    queryset = Selection.objects.all()
+    serializer_class = SelectionDetailSerializer
+
+
+class SelectionCreateView(CreateAPIView):
+    """
+    Создание новой подборки
+    """
+    queryset = Selection.objects.all()
+    serializer_class = SelectionCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class SelectionUpdateView(UpdateAPIView):
+    """
+    Обновление данных по подборке
+    """
+    queryset = Selection.objects.all()
+    serializer_class = SelectionUpdateSerializer
+    permission_classes = [IsAuthenticated, IsSelectionOwner]
+
+
+class SelectionDeleteView(DestroyAPIView):
+    """
+    Удаление подборки
+    """
+    queryset = Selection.objects.all()
+    serializer_class = SelectionDestroySerializer
+    permission_classes = [IsAuthenticated, IsSelectionOwner]
 

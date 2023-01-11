@@ -41,7 +41,7 @@ class AdUser(AbstractUser):
     username = models.SlugField(max_length=30, unique=True)
     password = models.SlugField(max_length=128)
     role = models.CharField(max_length=15, choices=ROLES, default="member")
-    age = models.PositiveSmallIntegerField()
+    age = models.PositiveSmallIntegerField(null=True, blank=True)
     location_names = models.ManyToManyField(Location)
 
     class Meta:
@@ -87,6 +87,19 @@ class Ad(models.Model):
     class Meta:
         verbose_name = "Объявление"
         verbose_name_plural = "Объявления"
+
+    def __str__(self):
+        return self.name
+
+
+class Selection(models.Model):
+    name = models.CharField(max_length=200)
+    owner = models.ForeignKey(AdUser, related_name="selections", on_delete=models.CASCADE)
+    items = models.ManyToManyField(Ad)
+
+    class Meta:
+        verbose_name = "Подборка"
+        verbose_name_plural = "Подборки"
 
     def __str__(self):
         return self.name

@@ -25,6 +25,7 @@ from ads.views import LocationViewSet
 router = routers.SimpleRouter()
 router.register('location', LocationViewSet)
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
@@ -32,6 +33,7 @@ urlpatterns = [
     path('ad/', include('ads.urls.ad')),
     path('cat/', include('ads.urls.cat')),
     path('user/', include('ads.urls.user')),
+    path('selection/', include('ads.urls.selection')),
 ]
 
 urlpatterns += router.urls
