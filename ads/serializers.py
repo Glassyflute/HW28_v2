@@ -102,12 +102,12 @@ class AdUserDestroySerializer(serializers.ModelSerializer):
 ######  Ad
 class AdListSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="username"
+        slug_field="username",
+        queryset=AdUser.objects.all()
     )
     category = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="name"
+        slug_field="name",
+        queryset=Category.objects.all()
     )
 
     location_names = serializers.SerializerMethodField()
@@ -136,11 +136,30 @@ class AdDetailSerializer(serializers.ModelSerializer):
         return [location_elem.name for location_elem in ad.author.location_names.all()]
 
     class Meta:
-        model = model = Ad
+        model = Ad
         fields = '__all__'
 
 
-# Selection serializers
+class AdCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = '__all__'
+
+
+class AdUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = '__all__'
+
+
+class AdDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = ["id"]
+
+
+
+######## Selection serializers
 class SelectionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Selection
@@ -160,9 +179,14 @@ class SelectionDetailSerializer(serializers.ModelSerializer):
 
 
 class SelectionCreateSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        request = self.context.get("request")
+        validated_data["owner"] = request.user
+        return super().create(validated_data)
+
     class Meta:
         model = Selection
-        fields = '__all__'
+        exclude = ['owner']
 
 
 class SelectionUpdateSerializer(serializers.ModelSerializer):
