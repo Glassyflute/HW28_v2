@@ -162,68 +162,6 @@ class AdListView(ListAPIView):
     queryset = Ad.objects.order_by("-price")
     serializer_class = AdListSerializer
 
-# class AdListView(ListView):
-#     """
-#     Список всех объявлений, с сортировкой по цене объявления по убыванию, с пагинатором и
-#     итоговой информацией
-#     """
-#
-#     model = Ad
-#
-#     def get(self, request, *args, **kwargs):
-#         super().get(request, *args, **kwargs)
-#         self.object_list = self.object_list.select_related("author").order_by("-price")
-#
-#         # переопределяем queryset
-#         categories = request.GET.getlist("cat", None)
-#         if categories:
-#             self.object_list = self.object_list.filter(category_id__in=categories)
-#         # if getlist, then can input several categories in list
-#
-#         # поиск по вхождению слова в название объявления, без учета регистра
-#         text = request.GET.get("text")
-#         if text:
-#             self.object_list = self.object_list.filter(name__icontains=text)
-#
-#         location = request.GET.get("loc")
-#         if location:
-#             self.object_list = self.object_list.filter(author__location_names__name__icontains=location)
-#
-#         price_from = request.GET.get("price_from")
-#         if price_from:
-#             self.object_list = self.object_list.filter(price__gte=price_from)
-#         price_to = request.GET.get("price_to")
-#         if price_to:
-#             self.object_list = self.object_list.filter(price__lte=price_to)
-#
-#         paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
-#         page_number = request.GET.get("page")
-#         page_obj = paginator.get_page(page_number)
-#
-#         ads = []
-#         for ad in page_obj:
-#             ads.append(
-#                 {
-#                     "id": ad.pk,
-#                     "name": ad.name,
-#                     "price": ad.price,
-#                     "description": ad.description,
-#                     "image": ad.image.url if ad.image else None,
-#                     "is_published": ad.is_published,
-#                     "author": ad.author.username,
-#                     "category": ad.category.name,
-#                     "location_names": list(map(str, ad.author.location_names.all()))
-#                 }
-#             )
-#
-#         response = {
-#             "items": ads,
-#             "num_pages": paginator.num_pages,
-#             "total": paginator.count
-#         }
-#
-#         return JsonResponse(response, safe=False)
-
 
 class AdCreateView(CreateAPIView):
     """
@@ -233,46 +171,6 @@ class AdCreateView(CreateAPIView):
     serializer_class = AdCreateSerializer
     permission_classes = [IsAuthenticated]
 
-# @method_decorator(csrf_exempt, name="dispatch")
-# class AdCreateView(CreateView):
-#     """
-#     Создание нового объявления
-#     """
-#     model = Ad
-#     fields = "__all__"
-#
-#     def post(self, request, *args, **kwargs):
-#         ad_data = json.loads(request.body)
-#
-#         # проверка на существование пользователя
-#         # создание объявления по username пользователю и id категории
-#         author = get_object_or_404(AdUser, username=ad_data["author"])
-#
-#         category = get_object_or_404(Category, pk=ad_data["category"])
-#
-#         ad_new = Ad.objects.create(
-#             name=ad_data.get("name"),
-#             price=ad_data.get("price"),
-#             description=ad_data.get("description"),
-#             is_published=ad_data.get("is_published", False),
-#             author=author,
-#             category=category
-#         )
-#
-#         locations_all_qs = ad_new.author.location_names.all()
-#
-#         return JsonResponse({
-#             "id": ad_new.pk,
-#             "name": ad_new.name,
-#             "price": ad_new.price,
-#             "description": ad_new.description,
-#             "image": ad_new.image.url if ad_new.image else None,
-#             "is_published": ad_new.is_published,
-#             "author": ad_new.author.username,
-#             "category": ad_new.category.name,
-#             "location_names": [location_elem.name for location_elem in locations_all_qs]
-#         })
-
 
 class AdUpdateView(UpdateAPIView):
     """
@@ -281,59 +179,6 @@ class AdUpdateView(UpdateAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdUpdateSerializer
     permission_classes = [IsAuthenticated, IsAdAuthorOrStaff]
-
-# @method_decorator(csrf_exempt, name="dispatch")
-# class AdUpdateView(UpdateView):
-#     """
-#     Обновление данных по выбранному объявлению
-#     """
-#     model = Ad
-#     fields = "__all__"
-#
-#     def patch(self, request, *args, **kwargs):
-#         super().post(request, *args, **kwargs)
-#
-#         ad_data = json.loads(request.body)
-#
-#         if "name" in ad_data:
-#             self.object.name = ad_data["name"]
-#         if "price" in ad_data:
-#             self.object.price = ad_data["price"]
-#         if "description" in ad_data:
-#             self.object.description = ad_data["description"]
-#         if "is_published" in ad_data:
-#             self.object.is_published = ad_data["is_published"]
-#
-#         if "category" in ad_data:
-#             self.object.category.pk = ad_data["category"]
-#         if "author" in ad_data:
-#             self.object.author.pk = ad_data["author"]
-#
-#         # проверка на существование пользователя
-#         # обновление данных по пользователю и категории через id
-#         author = get_object_or_404(AdUser, pk=ad_data["author"])
-#         category = get_object_or_404(Category, pk=ad_data["category"])
-#
-#         locations_all_qs = self.object.author.location_names.all()
-#
-#         try:
-#             self.object.full_clean()
-#         except ValidationError as e:
-#             return JsonResponse(e.message_dict, status=422)
-#
-#         self.object.save()
-#
-#         return JsonResponse({
-#                     "id": self.object.pk,
-#                     "name": self.object.name,
-#                     "price": self.object.price,
-#                     "description": self.object.description,
-#                     "image": self.object.image.url if self.object.image else None,
-#                     "is_published": self.object.is_published,
-#                     "author": self.object.author.username,
-#                     "category": self.object.category.name,
-#                     "location_names": [location_elem.name for location_elem in locations_all_qs]
-#                 })
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -363,20 +208,6 @@ class AdDeleteView(DestroyAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdDestroySerializer
     permission_classes = [IsAuthenticated, IsAdAuthorOrStaff]
-
-# @method_decorator(csrf_exempt, name="dispatch")
-# class AdDeleteView(DeleteView):
-#     """
-#     Удаление объявления
-#     """
-#     model = Ad
-#     success_url = "/"
-#
-#     def delete(self, request, *args, **kwargs):
-#         ad_ = self.get_object()
-#         ad_pk = ad_.pk
-#         super().delete(request, *args, **kwargs)
-#         return JsonResponse({"id deleted": ad_pk}, status=200)
 
 
 ####################
