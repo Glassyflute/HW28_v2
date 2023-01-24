@@ -2,14 +2,15 @@ import json
 
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Avg, Max, Min, Count, Q
+from django.db.models import Avg, Max, Min, Count, Q, F
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, UpdateView, ListView, CreateView, DeleteView
+
 from rest_framework.generics import RetrieveAPIView, ListAPIView, DestroyAPIView, CreateAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 
 from ads.models import Category, Ad, AdUser, Location, Selection
@@ -159,8 +160,11 @@ class AdListView(ListAPIView):
     """
     Список всех объявлений
     """
-    queryset = Ad.objects.order_by("-price")
+    queryset = Ad.objects.annotate(
+        location_names=F('author__location_names__name')
+    ).order_by("-price")
     serializer_class = AdListSerializer
+    permission_classes = [AllowAny]
 
 
 class AdCreateView(CreateAPIView):
@@ -279,7 +283,9 @@ class SelectionDetailView(RetrieveAPIView):
     """
     Детальная информация по подборкам выбранного пользователя
     """
-    queryset = Selection.objects.all()
+    queryset = Selection.objects.annotate(
+        location_names=F('owner__location_names__name')
+    )
     serializer_class = SelectionDetailSerializer
 
 

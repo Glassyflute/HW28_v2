@@ -110,14 +110,11 @@ class AdListSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all()
     )
 
-    location_names = serializers.SerializerMethodField()
-
-    def get_location_names(self, ad):
-        return [location_elem.name for location_elem in ad.author.location_names.all()]
+    location_names = serializers.CharField()
 
     class Meta:
         model = Ad
-        fields = '__all__'
+        fields = ["id", "name", "price", "description", "image", "is_published", "author", "category", "location_names"]
 
 
 class AdDetailSerializer(serializers.ModelSerializer):
@@ -171,7 +168,8 @@ class SelectionDetailSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field="username"
     )
-    items = AdListSerializer(many=True)
+    location_names = serializers.CharField()
+    # items = AdListSerializer(many=True)
 
     class Meta:
         model = Selection
